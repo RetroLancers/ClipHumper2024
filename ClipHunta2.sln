@@ -1,10 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipHunta2", "ClipHunta2.csproj", "{F8C31E3E-653A-40EE-9663-615AF2E9EF42}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing", "Testing\Testing.csproj", "{A77618EE-2423-45FB-9247-B6934C414C59}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing", "..\Testing\Testing.csproj", "{03B326C5-3E77-4C0B-8C64-92AB568FDEDF}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClipHunta2", "ClipHunta2.csproj", "{F8C31E3E-653A-40EE-9663-615AF2E9EF42}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,13 +15,11 @@ Global
 		{F8C31E3E-653A-40EE-9663-615AF2E9EF42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8C31E3E-653A-40EE-9663-615AF2E9EF42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8C31E3E-653A-40EE-9663-615AF2E9EF42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A77618EE-2423-45FB-9247-B6934C414C59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A77618EE-2423-45FB-9247-B6934C414C59}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A77618EE-2423-45FB-9247-B6934C414C59}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A77618EE-2423-45FB-9247-B6934C414C59}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03B326C5-3E77-4C0B-8C64-92AB568FDEDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03B326C5-3E77-4C0B-8C64-92AB568FDEDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03B326C5-3E77-4C0B-8C64-92AB568FDEDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03B326C5-3E77-4C0B-8C64-92AB568FDEDF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {74453D6F-9FB9-404D-929F-5B456F4D46E1}
 	EndGlobalSection
 EndGlobal

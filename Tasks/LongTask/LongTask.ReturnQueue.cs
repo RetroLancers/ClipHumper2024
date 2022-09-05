@@ -4,20 +4,30 @@ namespace ClipHunta2;
 
 public partial class LongTaskWithReturn<T, TR>
 {
-    public class ReturnQueue 
+    public class ReturnQueue
     {
-        private readonly AutoResetEvent _are = new(false);
+        private CancellationTokenSource _source = new CancellationTokenSource();
         private TR? _value;
 
         public void SetValue(TR? value)
         {
+ 
             _value = value;
-            _are.Set();
+            _source.Cancel();
         }
 
         public TR? GetReturn()
         {
-            _are.WaitOne();
+            try
+            {
+                Task.Delay(-1, _source.Token).Wait();
+            }
+            catch (Exception e)
+            {
+            }
+
+         
+
             return _value;
         }
     }

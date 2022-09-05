@@ -1,52 +1,60 @@
-﻿using Serilog;
+﻿using ClipHunta2.Tasks.FrameTesting.OW;
+using OpenCvSharp;
+using Serilog;
 using Tesseract;
 
 namespace ClipHunta2;
 
-public class ImageScannerTask : LongTask<Tuple<string, byte[]>>
+public class ImageScannerTask : LongTask<(StreamDefinition streamDefinition,
+    byte[] bytes, StreamCaptureType captureType
+    , StreamCaptureStatus streamCaptureStatus, int frameNumber, int second,
+    int fps)>
 {
-    protected override async Task _action(Tuple<string, byte[]> value)
+    protected override LongTask<(StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType captureType,
+        StreamCaptureStatus streamCaptureStatus, int frameNumber, int second, int fps)>? GetTop()
     {
-        var tesseractTask = TesseractLongTaskManager.GetInstance().GetLongTasker();
-        using var pix = Pix.LoadFromMemory(value.Item2);
-        var text = await tesseractTask.PutAndGet(pix);
-        if (text == null)
+        return ImageScannerTaskManager.GetInstance().GetTopTasker();
+    }
+
+    protected override async Task _action(
+        (StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType
+            captureType, StreamCaptureStatus streamCaptureStatus, int frameNumber, int second,
+            int fps) value)
+    {
+        using var pix = Pix.LoadFromMemory(value.bytes);
+
+        var text = await TesseractLongTaskManager.GetInstance().GetLongTasker().GetText(pix);
+        if (string.IsNullOrWhiteSpace(text))
         {
-            Log.Logger.Debug("Got empty text");
+            //Log.Logger.Debug("Got empty text");
+            value.streamCaptureStatus.IncrementFinishedCount();
             return;
         }
 
-        var events = new List<string>();
-        foreach (var key in look_ups.Keys)
-        {
-            for (var index = 0; index < look_ups[key].Length; index++)
-            {
-                var textLookup = look_ups[key][index];
-                if (text.IndexOf(textLookup, StringComparison.Ordinal) < 0) continue;
-                events.Add(key);
-                break;
-            }
-        }
+#if TrainingData
+        
+        TrainingDataTaskManager.GetInstance().GetLongTasker()?.Put(new LongTaskQueueItem<(string[], Pix)>((OwFrameTester.GetInstance().TestFrame(text), pix.Clone())));
+#endif
+        EventRouterTaskManager.GetInstance().GetLongTasker()?.Put(
+            new LongTaskQueueItem<(StreamDefinition, FrameEvent[], StreamCaptureStatus)>((value.streamDefinition,
+                OwFrameTester.GetInstance().TestFrame(text)
+                    .Select(s => new FrameEvent(s, value.frameNumber, value.second, value.fps)).ToArray(),
+                value.streamCaptureStatus)));
 
-        var retval = events.ToArray();
-        events.Clear();
-        events = null;
-        // EventEmitterTaskManager.GetInstance().GetLongTasker().Put(
-        //     new LongTaskQueueItem<Tuple<string, string[]>>(new Tuple<string, string[]>(value.Item1, retval)));
-        return;
+        value.streamCaptureStatus.IncrementImagesScanned();
+        text = null;
     }
 
-    public void PutInQueue(Tuple<string, byte[]> value)
+    public void PutInQueue(
+        (StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType captureType, StreamCaptureStatus
+            streamCaptureStatus, int frameNumber, int second,
+            int fps) value)
     {
-        Put(new LongTaskQueueItem<Tuple<string, byte[]>>(value)).Wait();
+        Put(new LongTaskQueueItem<(StreamDefinition, byte[], StreamCaptureType, StreamCaptureStatus, int, int, int)>(
+            value)).Wait();
     }
 
     public ImageScannerTask(CancellationTokenSource cts) : base(cts)
     {
     }
-
-    static Dictionary<string, string[]> look_ups = new Dictionary<string, string[]>()
-    {
-        { "elim", new string[] { "ELIMINATED", "NATED", "MNATED", "TED" } }
-    };
 }

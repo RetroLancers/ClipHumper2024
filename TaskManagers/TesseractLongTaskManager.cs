@@ -14,14 +14,25 @@ public sealed class TesseractLongTaskManager : LongTaskManger<TesseractTask>
         return new TesseractTask(_cancellationToken);
     }
 
+ 
+
     public static TesseractLongTaskManager GetInstance()
     {
         if (_instance == null)
         {
             _instance = new TesseractLongTaskManager();
             _cancellationToken = new CancellationTokenSource();
+      
         }
 
         return _instance;
+    }
+
+    public void Free()
+    {
+        foreach (var tesseractTask in _longTasks)
+        {
+            tesseractTask.Dispose();
+        }
     }
 }

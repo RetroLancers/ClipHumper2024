@@ -12,6 +12,12 @@ public class LongTaskManger<T> where T : LongTask
         return default;
     }
 
+    public override string ToString()
+    {
+        return string.Join("\n", _longTasks.Select(a => a.ToString()));
+    }
+
+
     public T? GetLongTasker()
     {
         var tmp = _longTasks;
@@ -22,7 +28,16 @@ public class LongTaskManger<T> where T : LongTask
 
         return tmp.OrderBy(SortTasks).First();
     }
+    public T? GetTopTasker()
+    {
+        var tmp = _longTasks;
+        if (tmp.Length == 0)
+        {
+            return null;
+        }
 
+        return tmp.OrderByDescending(SortTasks).First();
+    }
     private static int SortTasks(T t)
     {
         return t.Count();

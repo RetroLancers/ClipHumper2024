@@ -8,7 +8,7 @@ using System;
 
 public class TwitchDlRunner
 {
-    public static TwitchDl.ClipLookupResult? LookUpStream(string streamUrl)
+    public static string? LookUpStream(string streamUrl)
     {
         try
         {
@@ -17,7 +17,7 @@ public class TwitchDlRunner
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "python",
-                    Arguments = $"-m twitchdl {streamUrl} --json",
+                    Arguments = $"TwitchDl/clip.py {streamUrl} ",
                     UseShellExecute = false, RedirectStandardOutput = true,
                     CreateNoWindow = true
                 }
@@ -29,8 +29,10 @@ public class TwitchDlRunner
             while (!process.StandardOutput.EndOfStream)
             {
                 var line = process.StandardOutput.ReadLine();
-
-                ssb.AppendLine(line);
+                if (line == "_start_")
+                {
+                    ssb.AppendLine(process.StandardOutput.ReadLine());
+                }
             }
 
             process.WaitForExit(30000);
@@ -44,7 +46,7 @@ public class TwitchDlRunner
                 Log.Logger.Information("Process Failed exit for {StreamUrl}", streamUrl);
             }
 
-            return JsonConvert.DeserializeObject<TwitchDl.ClipLookupResult>(ssb.ToString());
+            return ssb.ToString().Trim();
         }
         catch (Exception e)
         {

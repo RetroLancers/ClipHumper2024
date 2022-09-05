@@ -1,48 +1,7 @@
 ﻿using System.Collections.Concurrent;
+using Serilog;
 
 namespace ClipHunta2;
-
-public partial class LongTask<T> : LongTask
-{
-    public LongTask(CancellationTokenSource cts) : base(cts)
-    {
-    }
-
-    private readonly ConcurrentQueue<LongTaskQueueItem<T>> _queue = new();
-
-    public override int Count()
-    {
-        return _queue.Count;
-    }
-
-    protected override async Task _iteration()
-    {
-        var value = await _take();
-        if (value == null)
-        {
-            await _sleep(DefaultSleep);
-            return;
-        }
-
-        await _action(value.Item);
-    }
-
-    protected virtual async Task _action(T value)
-    {
-    }
-
-    private async Task<LongTaskQueueItem<T>?> _take()
-    {
-        if (_queue.TryDequeue(out var tmp))
-            return tmp;
-        return default;
-    }
-
-    public async Task Put(LongTaskQueueItem<T> work)
-    {
-        _queue.Enqueue(work);
-    }
-}
 
 public partial class LongTaskWithReturn<T, TR> : LongTask
 {
@@ -57,9 +16,24 @@ public partial class LongTaskWithReturn<T, TR> : LongTask
             return;
         }
 
-        var tmp = await _action(value.Item);
+        var watch = new System.Diagnostics.Stopwatch();
+        watch.Reset();
 
-        value.ReturnQueue.SetValue(tmp);
+
+        try
+        {
+            watch.Start();
+
+            var tmp = await _action(value.Item);
+
+            value.ReturnQueue.SetValue(tmp);
+            watch.Stop();
+            Console.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
+        }
+        catch (Exception e)
+        {
+            Log.Logger.Error("Error in _iteration {Message} Stack: {Stack}", e.Message, e.StackTrace);
+        }
     }
 
     public override int Count()
@@ -68,16 +42,23 @@ public partial class LongTaskWithReturn<T, TR> : LongTask
     }
 
 
-    private async Task<LongTaskQueueItemWithReturn<T, TR>?> _take()
+    protected async Task<LongTaskQueueItemWithReturn<T, TR>?> _take()
     {
         if (_queue.TryDequeue(out var tmp))
             return tmp;
         return default;
     }
 
+    public LongTaskQueueItemWithReturn<T, TR>? Take()
+    {
+        var take = _take();
+        take.Wait();
+        return take.Result;
+    }
+
     public async Task Put(LongTaskQueueItemWithReturn<T, TR> work)
     {
-        _queue.Enqueue(work);
+        Task.Run(() => { _queue.Enqueue(work); });
     }
 
     public async Task<TR?> PutAndGet(T item)
