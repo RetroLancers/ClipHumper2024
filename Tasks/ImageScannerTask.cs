@@ -26,15 +26,12 @@ public class ImageScannerTask : LongTask<(StreamDefinition streamDefinition,
         var text = await TesseractLongTaskManager.GetInstance().GetLongTasker().GetText(pix);
         if (string.IsNullOrWhiteSpace(text))
         {
-            //Log.Logger.Debug("Got empty text");
+         
             value.streamCaptureStatus.IncrementFinishedCount();
             return;
         }
 
-#if TrainingData
-        
-        TrainingDataTaskManager.GetInstance().GetLongTasker()?.Put(new LongTaskQueueItem<(string[], Pix)>((OwFrameTester.GetInstance().TestFrame(text), pix.Clone())));
-#endif
+
         EventRouterTaskManager.GetInstance().GetLongTasker()?.Put(
             new LongTaskQueueItem<(StreamDefinition, FrameEvent[], StreamCaptureStatus)>((value.streamDefinition,
                 OwFrameTester.GetInstance().TestFrame(text)
