@@ -174,7 +174,7 @@ public class StreamCaptureTaskStarterTask
         else
         {
             var streams = StreamLinkRunner.LookUpStream("https://twitch.tv/" + _stream);
-            if (streams != null && streams.Streams !=null)
+            if (streams is { Streams: not null })
             {
                 var streamDict = streams.Streams;
 

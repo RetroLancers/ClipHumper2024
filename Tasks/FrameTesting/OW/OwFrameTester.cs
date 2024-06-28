@@ -16,27 +16,8 @@ public sealed class OwFrameTester
 
     private readonly FrameTester[] _testers = { OwOrbHarmonyTester.GetInstance(), OwHealingTester.GetInstance(), OwDeathFrameTester.GetInstance(), OwElimFrameTester.GetInstance(), OwHeroSelectTester.GetInstance(), OwBlockingTester.GetInstance(), OwAssistTester.GetInstance() };
 
-    public string[] TestFrame(string text)
+    public IEnumerable<string> TestFrame(string text)
     {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return Array.Empty<string>();
-        }
-
-        List<string> list = new();
-
-        foreach (var tester in _testers)
-        {
-
-            if (tester.Test(text))
-            {
-                list.Add(tester.GetName());
-         
-            }
-        }
-
-        string[] strings = list.ToArray();
-        list.Clear();
-        return strings;
+        return string.IsNullOrWhiteSpace(text) ? Array.Empty<string>() : (from tester in _testers where tester.Test(text) select tester.GetName()).ToArray();
     }
 }

@@ -5,6 +5,8 @@ using Tesseract;
 
 namespace ClipHunta2;
 
+ 
+
 public class StreamCaptureTask
 {
     private readonly CancellationTokenSource _cts;
@@ -59,11 +61,11 @@ public class StreamCaptureTask
 
         if (fps > 300)
         {
-            fps = 120;
+            fps = 60;
         }
         try
         {
-
+            int sleep = 0;
             while (!_cts.IsCancellationRequested)
             {
                 if (!videocapture.IsOpened())
@@ -76,11 +78,18 @@ public class StreamCaptureTask
 
                 if (frameMat.Empty()) break;
 
-
-                if (frameNumber % 5 == 0)
+          
+                if (frameNumber % 120 == 0)
                 {
                     EmitFrame(frameMat, captureType, streamCaptureStatus, frameNumber, fps);
+                    
                     streamCaptureStatus.IncrementFrameCount();
+                    sleep++;
+                    if (sleep > 30)
+                    {
+                   //     Task.Delay(2000).Wait();
+                        sleep=0;
+                    }
                 }
                 else
                 {

@@ -5,7 +5,7 @@ public abstract class LongTask
     private readonly CancellationTokenSource _cts;
     private readonly AutoResetEvent _are = new AutoResetEvent(false);
 
-    protected static readonly TimeSpan DefaultSleep = TimeSpan.FromSeconds(1);
+    protected static readonly TimeSpan DefaultSleep = TimeSpan.FromMilliseconds(250);
     private Task? _task;
 
     public LongTask(CancellationTokenSource cts)

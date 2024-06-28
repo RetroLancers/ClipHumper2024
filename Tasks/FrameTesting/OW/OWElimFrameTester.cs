@@ -48,7 +48,8 @@ public sealed class OwDeathFrameTester : TextFrameTester
     }
     public override bool Test(string text)
     {
-        if (text.IndexOf("WERE") >= 0 && text.IndexOf("BY") >= 0) return true;
+       
+        if (text.Contains("WERE") && text.Contains("BY")) return true;
         return base.Test(text);
     }
 

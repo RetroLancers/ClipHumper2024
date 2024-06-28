@@ -5,7 +5,7 @@ namespace ClipHunta2;
 public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, FrameEvent[] frameEvents,
     StreamCaptureStatus streamCaptureStatus)>
 {
-    public static List<(StreamDefinition streamDefinition, FrameEvent frameEvent)> eventsrecv { get; set; } = new();
+    public static List<(StreamDefinition streamDefinition, FrameEvent frameEvent)> EventsrecvReverent { get; } = new();
 
     public EventRouterTask(CancellationTokenSource cts) : base(cts)
     {
@@ -15,23 +15,21 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, Fram
     {
         return IsSameSecond(a, b);
     }
-    protected void AddEvent((StreamDefinition streamDefinition, FrameEvent[] frameEvents) value)
+
+    private static void AddEvent((StreamDefinition streamDefinition, FrameEvent[] frameEvents) value)
     {
-        Monitor.Enter(eventsrecv);
+        Monitor.Enter(EventsrecvReverent);
         try
         {
-            foreach(var frame in value.frameEvents)
-            {
-                eventsrecv.Add((value.streamDefinition, frame));
-            }
-            
-        }catch(Exception ex)
+            EventsrecvReverent.AddRange(value.frameEvents.Select(frame => (value.streamDefinition, frame)));
+        }
+        catch (Exception ex)
         {
-           Log.Logger.Error(ex,"Error recording frame event intoeventsrecv");
+            Log.Logger.Error(ex, "Error recording frame event intoeventsrecv");
         }
         finally
         {
-            Monitor.Exit(eventsrecv);
+            Monitor.Exit(EventsrecvReverent);
         }
     }
 
@@ -39,24 +37,23 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, Fram
     {
         return b.EventName == a.EventName && b.Second == a.Second;
     }
+
     protected string[] blockedByElim = new[] { "elim" };
+
     protected override async Task<string?> _action(
         (StreamDefinition streamDefinition, FrameEvent[] frameEvents, StreamCaptureStatus streamCaptureStatus) value)
     {
-  
-
         if (value.frameEvents.Length > 0)
         {
+            Console.WriteLine(string.Join("," ,value.frameEvents.Select(a=>a.ToString())));
             AddEvent((value.streamDefinition, value.frameEvents));
-      
         }
-         
 
 
         switch (value.streamDefinition.StreamCaptureType)
         {
             case StreamCaptureType.Clip:
-
+                
                 break;
             case StreamCaptureType.Stream:
 

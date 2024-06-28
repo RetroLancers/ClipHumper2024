@@ -1,5 +1,8 @@
-﻿using ClipHunta2.Tasks.FrameTesting.OW;
+﻿using System.Drawing;
+using System.Runtime.InteropServices;
+using ClipHunta2.Tasks.FrameTesting.OW;
 using OpenCvSharp;
+using OpenCvSharp.Extensions;
 using Serilog;
 using Tesseract;
 
@@ -24,9 +27,18 @@ public class ImageScannerTask : LongTask<(StreamDefinition streamDefinition,
         using var pix = Pix.LoadFromMemory(value.bytes);
 
         var text = await TesseractLongTaskManager.GetInstance().GetLongTasker().GetText(pix);
+        if (text?.Trim().Length > 0)
+        {
+            Bitmap bitmap = PixConverter.ToBitmap(pix);
+            Mat mat = bitmap.ToMat();
+            Cv2.ImShow($"{value.streamDefinition.StreamerName}", mat);
+            Cv2.WaitKey(1);
+            Console.WriteLine(text);
+        }
+
         if (string.IsNullOrWhiteSpace(text))
         {
-         
+            
             value.streamCaptureStatus.IncrementFinishedCount();
             return;
         }

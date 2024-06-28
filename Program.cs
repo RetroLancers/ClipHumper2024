@@ -27,22 +27,24 @@ Console.WriteLine("Hello, World!");
 var now = DateTime.Now;
 var cancellationTokenSource = new CancellationTokenSource();
 StreamCaptureTaskStarterTask streamCaptureTaskStarterTask =
-    new StreamCaptureTaskStarterTask(cancellationTokenSource, "karq", StreamCaptureType.Stream);
-var streamStatus = streamCaptureTaskStarterTask.Start("karq");
+    new StreamCaptureTaskStarterTask(cancellationTokenSource, "GodOfBronze5", StreamCaptureType.Clip);
+var streamStatus = streamCaptureTaskStarterTask.Start("https://www.twitch.tv/videos/2180035368");
+
+
 
 while (streamStatus.FinishedCount != streamStatus.FinalFrameCount)
 {
     Task.Delay(2000, cancellationTokenSource.Token).Wait(cancellationTokenSource.Token);
-    Console.WriteLine(streamStatus);
-    Console.WriteLine("Image Scanner " + ImageScannerTaskManager.GetInstance());
-    Console.WriteLine("Image Prepped" + ImagePrepperTaskManager.GetInstance());
+    // Console.WriteLine(streamStatus);
+    // Console.WriteLine("Image Scanner " + ImageScannerTaskManager.GetInstance());
+    // Console.WriteLine("Image Prepped" + ImagePrepperTaskManager.GetInstance());
     //Console.WriteLine("Tesseract    " + TesseractLongTaskManager.GetInstance());
 }
 
 cancellationTokenSource.Cancel(false);
 
 
-var items = EventRouterTask.eventsrecv.OrderBy(A => A.frameEvent.Second).GroupBy(a => a.frameEvent.EventName).ToDictionary(a => a.Key);
+var items = EventRouterTask.EventsrecvReverent.OrderBy(A => A.frameEvent.Second).GroupBy(a => a.frameEvent.EventName).ToDictionary(a => a.Key);
 
 
 foreach ( string eventName in items.Keys)

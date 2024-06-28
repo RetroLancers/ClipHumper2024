@@ -16,15 +16,15 @@ public class TwitchDlRunner
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "python",
+                    FileName = @"C:\python310\python3.exe",
                     Arguments = $"TwitchDl/clip.py {streamUrl} ",
                     UseShellExecute = false, RedirectStandardOutput = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true, RedirectStandardError = true,
                 }
             };
 
             process.Start();
-
+            StringBuilder ssbError = new();
             StringBuilder ssb = new();
             while (!process.StandardOutput.EndOfStream)
             {
@@ -33,6 +33,11 @@ public class TwitchDlRunner
                 {
                     ssb.AppendLine(process.StandardOutput.ReadLine());
                 }
+            }
+
+            while (!process.StandardError.EndOfStream)
+            {
+                ssbError.AppendLine(process.StandardError.ReadLine());
             }
 
             process.WaitForExit(30000);
