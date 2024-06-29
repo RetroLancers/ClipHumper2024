@@ -16,8 +16,8 @@ public sealed class OwElimFrameTester : TextFrameTester
         return _avoids;
     }
     private static OwElimFrameTester? _instance = null;
-    private readonly string[] _lookups = new[] { "ELIMINATED", "NATED", "MNATED","TED" };
-    private readonly string[] _avoids= new[] {  "BY", "WERE","WE" };
+    private readonly string[] _lookups = ["ELIMINATED", "NATED", "MNATED","TED"];
+    private readonly string[] _avoids= ["BY", "WERE","WE"];
 
     protected override string[] Lookups()
     {
@@ -54,7 +54,7 @@ public sealed class OwDeathFrameTester : TextFrameTester
     }
 
     private static OwDeathFrameTester? _instance = null;
-    private readonly string[] _lookups = new[] { "NATED BY",  "MNATED  BY", "TED  BY" ,"OU WERE"};
+    private readonly string[] _lookups = ["NATED BY",  "MNATED  BY", "TED  BY" ,"OU WERE"];
 
     protected override string[] Lookups()
     {
@@ -86,7 +86,7 @@ public sealed class OwAssistTester : TextFrameTester
     }
 
     private static OwAssistTester? _instance = null;
-    private readonly string[] _lookups = new[] { "ASSIST" };
+    private readonly string[] _lookups = ["ASSIST"];
 
     protected override string[] Lookups()
     {
@@ -116,7 +116,7 @@ public sealed class OwOrbHarmonyTester : TextFrameTester
     }
 
     private static OwOrbHarmonyTester? _instance = null;
-    private readonly string[] _lookups = new[] { "OF HARMONY" };
+    private readonly string[] _lookups = ["OF HARMONY"];
 
     protected override string[] Lookups()
     {
@@ -147,7 +147,7 @@ public sealed class OwHealingTester : TextFrameTester
     }
 
     private static OwHealingTester? _instance = null;
-    private readonly string[] _lookups = new[] { "HEALING" };
+    private readonly string[] _lookups = ["HEALING"];
 
     protected override string[] Lookups()
     {
@@ -179,7 +179,7 @@ public sealed class OwBlockingTester : TextFrameTester
     }
 
     private static OwBlockingTester? _instance = null;
-    private readonly string[] _lookups = new[] { "BLOCKING" };
+    private readonly string[] _lookups = ["BLOCKING"];
 
     protected override string[] Lookups()
     {
@@ -213,7 +213,7 @@ public sealed class OwHeroSelectTester : TextFrameTester
     }
 
     private static OwHeroSelectTester? _instance = null;
-    private readonly string[] _lookups = new[] { "CHANGE HERO" };
+    private readonly string[] _lookups = ["CHANGE HERO"];
 
     protected override string[] Lookups()
     {

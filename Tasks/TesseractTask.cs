@@ -11,9 +11,9 @@ public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
     {
         _engine = new TesseractEngine(tesseractDataPath, tesseractLanguage, mode);
         _engine.SetVariable("debug_file", "/dev/null");
-       // _engine.SetVariable("load_system_dawg", false);
-       //_engine.SetVariable("load_freq_dawg", false);
-        //_engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTWXYZ+abcdefghijklmnopqrstwxyz_-123456789\t ");
+        _engine.SetVariable("load_system_dawg", false);
+       _engine.SetVariable("load_freq_dawg", false);
+        _engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz>()\t ");
         _count = new ThreadSafeInt(0);
     }
 
@@ -48,7 +48,7 @@ public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
         Monitor.Enter(_engine);
         try
         {
-            using var page = _engine.Process(pix, PageSegMode.SingleColumn);
+            using var page = _engine.Process(pix);
             return page.GetText();
         }
         catch (Exception ex)

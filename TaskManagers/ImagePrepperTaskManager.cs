@@ -2,7 +2,7 @@
 
 public sealed class ImagePrepperTaskManager : LongTaskManger<ImagePrepperTask>
 { 
-    private static ImagePrepperTaskManager _instance;
+    private static ImagePrepperTaskManager? _instance;
 
     public override ImagePrepperTask createOne()
     {
@@ -11,7 +11,7 @@ public sealed class ImagePrepperTaskManager : LongTaskManger<ImagePrepperTask>
 
     public ImagePrepperTaskManager()
     {
-        _longTasks = Array.Empty<ImagePrepperTask>();
+        _longTasks = [];
     }
 
 

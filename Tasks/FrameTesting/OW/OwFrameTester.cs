@@ -14,10 +14,11 @@ public sealed class OwFrameTester
         return _instance;
     }
 
-    private readonly FrameTester[] _testers = { OwOrbHarmonyTester.GetInstance(), OwHealingTester.GetInstance(), OwDeathFrameTester.GetInstance(), OwElimFrameTester.GetInstance(), OwHeroSelectTester.GetInstance(), OwBlockingTester.GetInstance(), OwAssistTester.GetInstance() };
+    private readonly FrameTester[] _testers = [OwOrbHarmonyTester.GetInstance(), OwHealingTester.GetInstance(), OwDeathFrameTester.GetInstance(), OwElimFrameTester.GetInstance(), OwHeroSelectTester.GetInstance(), OwBlockingTester.GetInstance(), OwAssistTester.GetInstance()
+    ];
 
     public IEnumerable<string> TestFrame(string text)
     {
-        return string.IsNullOrWhiteSpace(text) ? Array.Empty<string>() : (from tester in _testers where tester.Test(text) select tester.GetName()).ToArray();
+        return string.IsNullOrWhiteSpace(text) ? [] : (from tester in _testers where tester.Test(text) select tester.GetName()).ToArray();
     }
 }

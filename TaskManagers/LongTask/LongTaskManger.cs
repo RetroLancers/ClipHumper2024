@@ -47,8 +47,11 @@ public class LongTaskManger<T> where T : LongTask
     {
         var _longTask = createOne();
         _longTask.StartTask();
-        List<T> tmp = new List<T>(_longTasks);
-        tmp.Add(_longTask);
+        List<T> tmp =
+        [
+            .._longTasks,
+            _longTask
+        ];
         _longTasks = tmp.ToArray();
         tmp.Clear();
         tmp = null;

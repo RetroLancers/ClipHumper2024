@@ -4,10 +4,10 @@ public sealed class TesseractLongTaskManager : LongTaskManger<TesseractTask>
 {
     public TesseractLongTaskManager()
     {
-        _longTasks = Array.Empty<TesseractTask>();
+        _longTasks = [];
     }
 
-    private static TesseractLongTaskManager _instance;
+    private static TesseractLongTaskManager? _instance;
 
     public override TesseractTask createOne()
     {

@@ -2,11 +2,11 @@
 
 public sealed class DatabaseTaskManager : LongTaskManger<DatabaseTask>
 {
-    private static DatabaseTaskManager _instance;
+    private static DatabaseTaskManager? _instance;
 
     public DatabaseTaskManager()
     {
-        _longTasks = Array.Empty<DatabaseTask>();
+        _longTasks = [];
     }
 
     public override DatabaseTask createOne()

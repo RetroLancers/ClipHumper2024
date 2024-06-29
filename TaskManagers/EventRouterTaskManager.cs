@@ -2,11 +2,11 @@
 
 public sealed class EventRouterTaskManager : LongTaskManger<EventRouterTask>
 {
-    private static EventRouterTaskManager _instance;
+    private static EventRouterTaskManager? _instance;
 
     public EventRouterTaskManager()
     {
-        _longTasks = Array.Empty<EventRouterTask>();
+        _longTasks = [];
     }
 
     public override EventRouterTask createOne()

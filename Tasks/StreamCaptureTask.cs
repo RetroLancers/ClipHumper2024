@@ -78,18 +78,17 @@ public class StreamCaptureTask
 
                 if (frameMat.Empty()) break;
 
-          
-                if (frameNumber % 120 == 0)
+                if (frameNumber < 60 * 60 * 3)
+                {
+            //        frameNumber++;
+            //        continue;
+                }
+                if (frameNumber % 15 == 0)
                 {
                     EmitFrame(frameMat, captureType, streamCaptureStatus, frameNumber, fps);
                     
                     streamCaptureStatus.IncrementFrameCount();
-                    sleep++;
-                    if (sleep > 30)
-                    {
-                   //     Task.Delay(2000).Wait();
-                        sleep=0;
-                    }
+              
                 }
                 else
                 {

@@ -4,11 +4,11 @@ namespace ClipHunta2;
 
 public sealed class ImageScannerTaskManager : LongTaskManger<ImageScannerTask>
 { 
-    private static ImageScannerTaskManager _instance; 
+    private static ImageScannerTaskManager? _instance; 
 
     public ImageScannerTaskManager()
     {
-        _longTasks = Array.Empty<ImageScannerTask>();
+        _longTasks = [];
     }
 
     public override ImageScannerTask createOne()

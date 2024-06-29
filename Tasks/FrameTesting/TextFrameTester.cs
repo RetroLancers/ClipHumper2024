@@ -6,7 +6,7 @@ public abstract class TextFrameTester : FrameTester
     protected abstract string[] Lookups();
     protected virtual string[] AvoidWords()
     {
-        return Array.Empty<string>();
+        return [];
     }
     public override bool Test(string text)
     {
