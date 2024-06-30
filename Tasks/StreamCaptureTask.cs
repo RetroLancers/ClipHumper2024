@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel;
+using FFMpegCore;
 using OpenCvSharp;
 using Serilog;
 using Tesseract;
 
 namespace ClipHunta2;
-
- 
 
 public class StreamCaptureTask
 {
@@ -25,6 +24,18 @@ public class StreamCaptureTask
         _backgroundWorker.DoWork += _watch;
     }
 
+    private static string CreateClipPath(string filePath, int start, int end)
+    {
+        string appendText = $" {start} - {end}";
+
+        string directoryName = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException("Could not get directory name");
+        string fileName = Path.GetFileNameWithoutExtension(filePath);
+        string extension = Path.GetExtension(filePath);
+
+        string newFileName = $"{fileName}{appendText}{extension}";
+        return Path.Combine(directoryName, newFileName);
+    }
+
     private void _watch(object? sender, DoWorkEventArgs e)
     {
         if (e.Argument == null) return;
@@ -32,7 +43,48 @@ public class StreamCaptureTask
         var (streamUrl, captureType, streamCaptureStatus) =
             (ValueTuple<string, StreamCaptureType, StreamCaptureStatus>)e.Argument;
 
+        var mediaInfo = FFProbe.Analyse(streamUrl);
+        FrameEventHandler.OnMultiKill += args =>
+        {
+            var group = args.Group;
+            if (group.Processed) return;
+            group.Processed = true;
 
+            Console.WriteLine(group);
+            switch (captureType)
+            {
+                case StreamCaptureType.Clip:
+                    var start = group.Min(a => a.Second);
+                    if (start < 6)
+                    {
+                        start = 0;
+                    }
+                    else
+                    {
+                        start -= 6;
+                    }
+
+                    var end = group.Max(a => a.Second);
+                    if (mediaInfo.Duration.TotalSeconds < end + 6)
+                    {
+                        end = (int)mediaInfo.Duration.TotalSeconds;
+                    }
+                    else
+                    {
+                        end += 6;
+                    }
+
+                    var clipPath = CreateClipPath(streamUrl, start, end);
+                    ClipTaskManager.GetInstance().GetLongTasker().Put(new LongTaskQueueItem<(string inFile, string outFile, int start, int end)>((streamUrl, clipPath, start, end)));
+
+                    
+                    break;
+                case StreamCaptureType.Stream:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        };
         using var videocapture = new VideoCapture();
         try
         {
@@ -40,11 +92,11 @@ public class StreamCaptureTask
         }
         catch (Exception ex)
         {
-
             Log.Logger.Error(ex, "error opening stream - it may be over");
             _cts.Cancel();
             return;
         }
+
         if (!videocapture.IsOpened())
         {
             streamCaptureStatus.SetFinalFrameCount(0);
@@ -63,6 +115,7 @@ public class StreamCaptureTask
         {
             fps = 60;
         }
+
         try
         {
             int sleep = 0;
@@ -80,15 +133,15 @@ public class StreamCaptureTask
 
                 if (frameNumber < 60 * 60 * 3)
                 {
-            //        frameNumber++;
-            //        continue;
+                    //        frameNumber++;
+                    //        continue;
                 }
-                if (frameNumber % 15 == 0)
+
+                if (frameNumber % 30 == 0)
                 {
                     EmitFrame(frameMat, captureType, streamCaptureStatus, frameNumber, fps);
-                    
+
                     streamCaptureStatus.IncrementFrameCount();
-              
                 }
                 else
                 {
@@ -96,6 +149,7 @@ public class StreamCaptureTask
                     streamCaptureStatus.IncrementFrameCount();
                     streamCaptureStatus.IncrementFinishedCount();
                 }
+
                 if (!videocapture.IsOpened())
                 {
                     streamCaptureStatus.SetFinalFrameCount(frameNumber);
@@ -104,39 +158,32 @@ public class StreamCaptureTask
                 }
 
                 frameNumber++;
-
             }
-        }catch(Exception ex)
+        }
+        catch (Exception ex)
         {
             Log.Logger.Error(ex, "error parsing stream");
             _cts.Cancel();
-
         }
         finally
         {
             streamCaptureStatus.SetFinalFrameCount(frameNumber);
         }
-
-      
     }
 
     private void EmitFrame(Mat frameMat, StreamCaptureType captureType, StreamCaptureStatus streamCaptureStatus,
         int frameNumber, double fps)
     {
         var tmp = frameMat.Clone();
-        
+
         Task.Run(() =>
         {
-            
             ImagePrepperTaskManager.GetInstance().GetLongTasker()
                 ?.PutInQueue((_stream, tmp.ToBytes(), captureType, streamCaptureStatus, frameNumber,
                     (int)(frameNumber / fps),
                     (int)fps));
-            tmp.Dispose();    
+            tmp.Dispose();
         });
-
-  
-    
     }
 
     public void Start(string streamUrl, StreamCaptureType captureType, StreamCaptureStatus streamCaptureStatus)

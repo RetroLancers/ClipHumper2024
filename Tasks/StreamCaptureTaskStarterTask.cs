@@ -41,6 +41,7 @@ public class ThreadSafeInt
     {
         return Value.ToString();
     }
+
     public void Decrement()
     {
         Task.Run(() =>
@@ -56,6 +57,7 @@ public class ThreadSafeInt
             }
         });
     }
+
     public void Increment()
     {
         Task.Run(() =>
@@ -73,10 +75,13 @@ public class ThreadSafeInt
     }
 }
 
- 
-
 public class StreamCaptureStatus
 {
+    public StreamCaptureStatus(CancellationTokenSource cts)
+    {
+        _cts = cts;
+    }
+
     private ThreadSafeInt _finished = 0;
     private ThreadSafeInt _framesCount = 0;
     private ThreadSafeInt _imagesPrepped = 0;
@@ -84,6 +89,8 @@ public class StreamCaptureStatus
     private ThreadSafeInt _eventsRouted = 0;
     private ThreadSafeInt _skipped = 0;
     private int _finalFrameCount = -1;
+    private readonly CancellationTokenSource _cts;
+
     public void IncrementFinishedCount()
     {
         _finished.Increment();
@@ -101,6 +108,7 @@ public class StreamCaptureStatus
     {
         _skipped.Increment();
     }
+
     public void IncrementFrameCount()
     {
         _framesCount.Increment();
@@ -135,6 +143,13 @@ public class StreamCaptureStatus
 
     public int EventsRouted => _eventsRouted.Value;
     public int FinishedCount => _finished.Value;
+
+ 
+
+    public void SetCanceled()
+    {
+        _cts.Cancel();
+    }
 }
 
 public class StreamCaptureTaskStarterTask
@@ -162,31 +177,38 @@ public class StreamCaptureTaskStarterTask
 
         var (clipId, status) = (ValueTuple<string, StreamCaptureStatus>)e.Argument!;
         string streamUrl = null;
-        if (_captureType == StreamCaptureType.Clip)
-        {
-            var clip = TwitchDlRunner.LookUpStream(clipId);
-            if (clip != null)
-            {
-                streamUrl = clip;
-            }
-            else Log.Logger.Debug("Failed to get the clip url {Streamer} ", _stream);
-        }
-        else
+        if (_captureType != StreamCaptureType.Clip)
         {
             var streams = StreamLinkRunner.LookUpStream("https://twitch.tv/" + _stream);
             if (streams is { Streams: not null })
             {
                 var streamDict = streams.Streams;
-
-                streamUrl = streamDict["720p60"].Url.ToString();
+                if (streamDict.TryGetValue("720p60", out var item))
+                {
+                    streamUrl = item.Url.ToString();
+                }
+                else if (streamDict.TryGetValue("1080p60", out var item1080))
+                {
+                    streamUrl = item1080.Url.ToString();
+                }
+                else Log.Logger.Debug("Failed to find watchable stream for {Streamer} ", _stream);
             }
-            else Log.Logger.Debug("Failed to get the stream url {Streamer} ", _stream);
+            else
+            {
+                status.SetCanceled();
+
+                Log.Logger.Debug("Failed to get the stream url {Streamer} ", _stream);
+            }
+        }
+        else
+        {
+            streamUrl = clipId;
         }
 
         if (streamUrl != null) captureTask.Start(streamUrl, _captureType, status);
     }
 
-    public StreamCaptureStatus Start(string? clipId)
+    public StreamCaptureStatus Start(string? clipId, CancellationTokenSource cts)
     {
         if (_backgroundWorker.IsBusy)
         {
@@ -198,7 +220,7 @@ public class StreamCaptureTaskStarterTask
             throw new ArgumentException("Argument can't be null, need clip id");
         }
 
-        StreamCaptureStatus status = new StreamCaptureStatus();
+        StreamCaptureStatus status = new StreamCaptureStatus(cts);
         _backgroundWorker.RunWorkerAsync((clipId, status));
         return status;
     }

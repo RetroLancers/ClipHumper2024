@@ -13,7 +13,7 @@ public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
         _engine.SetVariable("debug_file", "/dev/null");
         _engine.SetVariable("load_system_dawg", false);
        _engine.SetVariable("load_freq_dawg", false);
-        _engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz>()\t ");
+        _engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890>()\t ");
         _count = new ThreadSafeInt(0);
     }
 

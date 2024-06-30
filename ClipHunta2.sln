@@ -5,6 +5,8 @@ VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClipHunta2", "ClipHunta2.csproj", "{F8C31E3E-653A-40EE-9663-615AF2E9EF42}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipHunta2.Tests", "..\ClipHunta2.Tests\ClipHunta2.Tests.csproj", "{61C21B65-0BB3-4F24-8485-6A26472B6B69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F8C31E3E-653A-40EE-9663-615AF2E9EF42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8C31E3E-653A-40EE-9663-615AF2E9EF42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8C31E3E-653A-40EE-9663-615AF2E9EF42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61C21B65-0BB3-4F24-8485-6A26472B6B69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61C21B65-0BB3-4F24-8485-6A26472B6B69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61C21B65-0BB3-4F24-8485-6A26472B6B69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61C21B65-0BB3-4F24-8485-6A26472B6B69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

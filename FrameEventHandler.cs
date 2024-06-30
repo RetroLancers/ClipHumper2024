@@ -1,10 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 
 namespace ClipHunta2;
 
 public class FrameEventHandler
 {
-    private static readonly List<FrameEvent> FrameEvents = [];
+    private static readonly ConcurrentQueue<FrameEvent> FrameEvents = [];
     private const int SecondsThreshold = 60 * 10;
     private static int _lastFrameNumber = 0;
     private static readonly List<FrameEventGroup> FrameEventGroups = [];
@@ -14,6 +15,7 @@ public class FrameEventHandler
     {
         return FrameEventGroups;
     }
+
     public delegate void OnMultiKillDelegate(MultiKillEventArgs e);
 
     public static event OnMultiKillDelegate? OnMultiKill;
@@ -38,91 +40,57 @@ public class FrameEventHandler
 
     private static void ProcessEvents(object? o, DoWorkEventArgs b)
     {
+        while (true)
+        {
+            task();
+            Thread.Sleep(1000);
+        }
+    }
+
+    private static void task()
+    {
         List<FrameEvent> sortedEvents;
-        Monitor.Enter(FrameEvents);
-
-        try
+        if (FrameEvents.IsEmpty)
         {
-            if (FrameEvents.Count == 0)
+            return;
+        }
+
+
+        while (!FrameEvents.IsEmpty)
+        {
+            if (!FrameEvents.TryDequeue(out var frameEvent))
             {
-                return;
+                break;
             }
-
-            sortedEvents = [..FrameEvents.OrderByDescending(a => a.FrameNumber).Where(a => !a.Processed)];
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return;
-        }
-        finally
-        {
-            Monitor.Exit(FrameEvents);
-        }
-
-        var lastEvent = sortedEvents.First();
-        sortedEvents.RemoveAt(0);
-        var frameDistance = Math.Abs(_lastFrameNumber - lastEvent.FrameNumber);
-
-        if (frameDistance < SecondsThreshold)
-        {
-            return;
-        }
-
-
-        FrameEventGroup group = [lastEvent];
-        while (sortedEvents.Count > 0)
-        {
-            var frameEvent = sortedEvents.First();
 
             frameEvent.Processed = true;
-            sortedEvents.RemoveAt(0);
-            if (frameEvent.IsCloseToGroup(group))
-            {
-                group.Add(frameEvent);
-           //     Console.WriteLine($"Kill Event at {frameEvent.Second}, added to front group");
-                if (group.Events.Count >= 2)
-                {
-                    OnMultiKill?.Invoke(new MultiKillEventArgs(group));
-                }
-
-                continue;
-            }
-
             var closeGroup = FrameEventGroups.FirstOrDefault(a => frameEvent.IsCloseToGroup(a));
             if (closeGroup != null)
             {
-                
                 closeGroup.Add(frameEvent);
-                if (closeGroup.Events.Count >= 2)
+                if (closeGroup.Events.Count >= 2 && !closeGroup.Processed)
                 {
-                    OnMultiKill?.Invoke(new MultiKillEventArgs(closeGroup));
+                    Console.WriteLine($"Dispatching Clip 2: {closeGroup}");
+                    _ = StartDelayedMultiEvent(closeGroup);
                 }
-          //      Console.WriteLine($"Kill Event at {frameEvent.Second}, added to previous group now size {closeGroup.Events.Count}");
+
+                //      Console.WriteLine($"Kill Event at {frameEvent.Second}, added to previous group now size {closeGroup.Events.Count}");
                 continue;
             }
 
-
+            FrameEventGroup group = [frameEvent];
             FrameEventGroups.Add(group);
-         //   Console.WriteLine($"Kill Event Group Size: {group.Events.Count}");
-            group = [frameEvent];
         }
+    }
+
+    static async Task StartDelayedMultiEvent(FrameEventGroup closeGroup)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(10)); //waits for 1 minute
+        OnMultiKill?.Invoke(new MultiKillEventArgs(closeGroup));
     }
 
     public static void AddEvent(FrameEvent frameEvent)
     {
-        Monitor.Enter(FrameEvents);
-        try
-        {
-            FrameEvents.Add(frameEvent);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-        finally
-        {
-            Monitor.Exit(FrameEvents);
-        }
+        FrameEvents.Enqueue(frameEvent);
     }
 }

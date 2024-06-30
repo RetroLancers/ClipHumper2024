@@ -31,6 +31,7 @@ public partial class LongTask<T> : LongTask
         }
         catch (Exception e)
         {
+            Console.WriteLine(e);
             Log.Logger.Error("Error in _iteration {Message} Stack: {Stack}", e.Message, e.StackTrace);
         }
     }

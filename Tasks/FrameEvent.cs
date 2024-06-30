@@ -1,7 +1,11 @@
 ﻿using System.Collections;
 using System.Text;
+using FuzzySharp;
 
 namespace ClipHunta2;
+
+using System;
+ 
 
 public class FrameEventGroup() : IEnumerable<FrameEvent>
 {
@@ -21,9 +25,9 @@ public class FrameEventGroup() : IEnumerable<FrameEvent>
         Monitor.Enter(Events);
         try
         {
-            foreach (var ev in Events)
+            foreach (var ev in Events.OrderBy(a => a.Second))
             {
-                sb.Append(ev.Second + ", ");
+                sb.Append($"{ev.Second} ({ev.Target}), ");
             }
         }
         finally
@@ -31,7 +35,14 @@ public class FrameEventGroup() : IEnumerable<FrameEvent>
             Monitor.Exit(Events);
         }
 
-        return sb.ToString().Trim();
+        return sb.ToString().Trim().Trim(',');
+    }
+
+    static bool IsSimilarStringPresent(IEnumerable<string> list, string input)
+    {
+        const int similarityTolerance = 60; // adjust this as needed
+
+        return list.Select(item => Fuzz.PartialRatio(input, item)).All(partialRatio => partialRatio <= similarityTolerance);
     }
 
     public void Add(FrameEvent lastEvent)
@@ -39,9 +50,26 @@ public class FrameEventGroup() : IEnumerable<FrameEvent>
         Monitor.Enter(Events);
         try
         {
-            if (Events.All(a => Math.Abs(a.Second - lastEvent.Second) > 1))
+            var names = Events.Where(a => a.Target != null).Select(a => a.Target!.ToLower()).ToArray();
+            var passesFuzz = true;
+            if (!string.IsNullOrEmpty(lastEvent.Target))
             {
-                Events.Add(lastEvent);
+                passesFuzz = IsSimilarStringPresent(names!, lastEvent.Target.ToLower());
+            }
+
+            var frameEvents = Events.Where(a => a.Target != null).ToArray();
+            switch (Events.Count)
+            {
+                // case > 0 when !Events.All(a => Math.Abs(a.Second - lastEvent.Second) > 1):
+                //     Console.WriteLine($"Skipping event - To Close : {lastEvent}");
+                //     return;
+                case > 0 when   !passesFuzz:
+                    //Console.WriteLine($"Skipping event - name seen : {lastEvent}");
+                    return;
+                default:
+                    //Console.WriteLine($"Adding event : {lastEvent}");
+                    Events.Add(lastEvent);
+                    break;
             }
         }
         finally
@@ -63,7 +91,7 @@ public class MultiKillEventArgs(FrameEventGroup group)
 
 public static class FrameEventHelpers
 {
-    private const int SecondsThreshold = 60 * 10;
+    private const int SecondsThreshold = 60 * 7;
 
     public static bool IsCloseToGroup(this FrameEvent @this, FrameEventGroup others)
     {
@@ -80,8 +108,11 @@ public static class FrameEventHelpers
 
 public class FrameEvent
 {
-    public FrameEvent(string? eventName, int frameNumber, int second, int fps)
+    public string? Target { get; }
+
+    public FrameEvent(string? eventName, int frameNumber, int second, int fps, string? target = null)
     {
+        Target = target;
         FrameNumber = frameNumber;
         EventName = eventName;
         Second = second;
@@ -97,6 +128,6 @@ public class FrameEvent
 
     public override string ToString()
     {
-        return $"{EventName} {FrameNumber} {Second} {FPS}";
+        return $"{EventName} {FrameNumber} {Second} {FPS} -> ({Target})";
     }
 }

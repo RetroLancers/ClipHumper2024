@@ -1,4 +1,5 @@
 ﻿using ClipHunta2;
+using FFMpegCore;
 using OpenCvSharp;
 using Serilog;
 using Tesseract;
@@ -9,6 +10,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/testing.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
+//for ffmpeg
+GlobalFFOptions.Configure(new FFOptions { BinaryFolder = "C:\\ProgramData\\chocolatey\\lib\\ffmpeg\\tools\\ffmpeg\\bin", TemporaryFilesFolder = "c:\\tmp" });
 
 #if TrainingData
 TrainingDataTaskManager.GetInstance().AddLongTasker();
@@ -22,39 +26,41 @@ TesseractLongTaskManager.GetInstance().AddLongTasker();
 TesseractLongTaskManager.GetInstance().AddLongTasker();
 ImagePrepperTaskManager.GetInstance().AddLongTasker();
 ImagePrepperTaskManager.GetInstance().AddLongTasker();
-FrameEventHandler.OnMultiKill += (args) =>
-{
-    var group = args.Group;
-    if (group.Processed) return;
-    group.Processed = true;
-    Console.WriteLine(group);
-
-};
+ClipTaskManager.GetInstance().AddLongTasker();
 FrameEventHandler.StartHandler();
 Console.WriteLine("Hello, World!");
 var now = DateTime.Now;
 var cancellationTokenSource = new CancellationTokenSource();
 StreamCaptureTaskStarterTask streamCaptureTaskStarterTask =
     new StreamCaptureTaskStarterTask(cancellationTokenSource, "GodOfBronze5", StreamCaptureType.Clip);
-var streamStatus = streamCaptureTaskStarterTask.Start("https://www.twitch.tv/videos/2180035368");
+var streamStatus = streamCaptureTaskStarterTask.Start(@"c:\twitchvods\stream_2024_6_29.mkv", cancellationTokenSource);
 
 
 while (streamStatus.FinishedCount != streamStatus.FinalFrameCount)
 {
-    Task.Delay(2000, cancellationTokenSource.Token).Wait(cancellationTokenSource.Token);
+    try
+    {
+        Task.Delay(2000, cancellationTokenSource.Token).Wait(cancellationTokenSource.Token);
+    }
+    catch (OperationCanceledException e)
+    {
+        Console.WriteLine("Application was stopped");
+        break;
+    }
     Console.WriteLine("Image Scanner " + ImageScannerTaskManager.GetInstance());
     Console.WriteLine("Image Prepped" + ImagePrepperTaskManager.GetInstance());
     Console.WriteLine("Tesseract    " + TesseractLongTaskManager.GetInstance());
     Console.WriteLine("Events    " + EventRouterTaskManager.GetInstance()); 
     Console.WriteLine(streamStatus);
-     
 }
+
 foreach (var frameEventGroup in FrameEventHandler.GetFrameEventGroups())
 {
     Console.WriteLine(frameEventGroup);
 }
+
 cancellationTokenSource.Cancel(false);
- 
+
 var endtime = DateTime.Now;
 var elapse = endtime - now;
 Console.WriteLine(elapse);
