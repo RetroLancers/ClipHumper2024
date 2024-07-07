@@ -14,7 +14,9 @@ Log.Logger = new LoggerConfiguration()
 
 
 //for ffmpeg
-GlobalFFOptions.Configure(new FFOptions { BinaryFolder = "C:\\ProgramData\\chocolatey\\lib\\ffmpeg\\tools\\ffmpeg\\bin", TemporaryFilesFolder = "c:\\tmp" });
+var ffmpeg = System.Environment.GetEnvironmentVariable("FFMPEG_PATH") ?? @"C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin";
+var tmpPath = System.Environment.GetEnvironmentVariable("TMP_PATH") ?? @"C:\tmp";
+GlobalFFOptions.Configure(new FFOptions { BinaryFolder = ffmpeg, TemporaryFilesFolder = tmpPath });
 
 
 ImageScannerTaskManager.GetInstance().AddLongTasker();
