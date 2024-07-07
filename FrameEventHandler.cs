@@ -1,9 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
+using ClipHunta2.Tasks;
 
 namespace ClipHunta2;
 
-public class FrameEventHandler
+public static class FrameEventHandler
 {
     private static readonly ConcurrentQueue<FrameEvent> FrameEvents = [];
     private const int SecondsThreshold = 60 * 10;
@@ -34,7 +35,7 @@ public class FrameEventHandler
 
     private static void RestartWorker(object? sender, RunWorkerCompletedEventArgs e)
     {
-        Task.Delay(1000).Wait();
+        System.Threading.Tasks.Task.Delay(1000).Wait();
         BackWorker.RunWorkerAsync();
     }
 
@@ -42,12 +43,12 @@ public class FrameEventHandler
     {
         while (true)
         {
-            task();
+            Task();
             Thread.Sleep(1000);
         }
     }
 
-    private static void task()
+    private static void Task()
     {
         List<FrameEvent> sortedEvents;
         if (FrameEvents.IsEmpty)
@@ -85,7 +86,7 @@ public class FrameEventHandler
 
     static async Task StartDelayedMultiEvent(FrameEventGroup closeGroup)
     {
-        await Task.Delay(TimeSpan.FromSeconds(10)); //waits for 1 minute
+        await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(10)); //waits for 1 minute
         OnMultiKill?.Invoke(new MultiKillEventArgs(closeGroup));
     }
 

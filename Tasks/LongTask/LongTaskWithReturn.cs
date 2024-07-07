@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Serilog;
 
-namespace ClipHunta2;
+namespace ClipHunta2.Tasks.LongTask;
 
 public partial class LongTaskWithReturn<T, TR> : LongTask
 {

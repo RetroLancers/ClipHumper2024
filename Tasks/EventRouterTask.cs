@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
-using Serilog;
+using ClipHunta2.Tasks.LongTask;
 
-namespace ClipHunta2;
+namespace ClipHunta2.Tasks;
 
 using ColorReport = (SixLabors.ImageSharp.Color averageColor, string dominantPrimaryColor);
 
@@ -25,16 +25,16 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
     }
 
     public static string CurrentUsername = "PHR34KZ";
-    public static Regex _currentAccount = new Regex(@"([A-Z0-9]{3,})\n", RegexOptions.Compiled);
-    private static Regex _isKill = new Regex(@"^[3WMX]{0,2}\s?(\w{3,})\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static Regex _isAssist = new Regex(@"ASSIST\s+(\w{3,})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static Regex _isDeath = new Regex(@"LIMINATED", RegexOptions.Compiled);
-    private static Regex cleanText = new Regex("[^A-Za-z0-9]", RegexOptions.Compiled);
-    private static string[] _forbidden = ["LCONTROL", "LEAVE"];
+    public static Regex CurrentAccount = new(@"([A-Z0-9]{3,})\n", RegexOptions.Compiled);
+    private static readonly Regex IsKill = new(@"^[3WMX]{0,2}\s?(\w{3,})\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex IsAssist = new(@"ASSIST\s+(\w{3,})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex IsDeath = new(@"LIMINATED", RegexOptions.Compiled);
+    private static readonly Regex CleanText = new("[^A-Za-z0-9]", RegexOptions.Compiled);
+    
 
 
     private static readonly object DeathLock = new();
-    private static int _lastDeath = 0;
+    private static int _lastDeath;
 
     public static void SetLastDeath(int second)
     {
@@ -44,11 +44,16 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
         }
     }
 
+    /// <summary>
+    /// Executes the action for the EventRouterTask.
+    /// </summary>
+    /// <param name="value">A tuple containing the stream definition, text, portrait text, dominant colors, frame number, second, frames per second, and stream capture status.</param>
+    /// <returns>Returns a string.</returns>
     protected override async Task<string?> _action(
         (StreamDefinition streamDefinition, string? text, string? portraitText, ColorReport[] dominantColor, int frameNumber, int second,
             int fps, StreamCaptureStatus streamCaptureStatus) value)
     {
-        var text = value.text;
+      
         var portraitText = value.portraitText;
 
         FrameEventHandler.SetLastFrameSeenByEventRouter(value.frameNumber);
@@ -61,7 +66,7 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
             return null;
         }
 
-        var deathMatch = _isDeath.Match(portraitText);
+        var deathMatch = IsDeath.Match(portraitText);
         if (deathMatch.Success || (value.second - _lastDeath < 8 && _lastDeath != 0))
         {
             value.streamCaptureStatus.IncrementEventsRouted();
@@ -72,30 +77,15 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
             }
 
             return null;
-        }
-//       && color.averageColor.ToHex().EndsWith("FF")
-        if (!value.dominantColor.All(color => color.dominantPrimaryColor == "Red" 
-                                       )
-            )
+        } 
+        
+        if (value.dominantColor.Any(color => color.dominantPrimaryColor != "Red"))
         {
             value.streamCaptureStatus.IncrementEventsRouted();
             value.streamCaptureStatus.IncrementFinishedCount();
             return null;
         }
-        // var leftColor = value.dominantColor[0];
-        // var rightColor = value.dominantColor[1];
-        // if (leftColor.dominantPrimaryColor != "Red" || !leftColor.averageColor.ToHex().EndsWith("FF"))
-        // {
-        //     value.streamCaptureStatus.IncrementEventsRouted();
-        //     value.streamCaptureStatus.IncrementFinishedCount();
-        //     return null;
-        // }
-        // if (rightColor.dominantPrimaryColor != "Red" || !rightColor.averageColor.ToHex().EndsWith("FF"))
-        // {
-        //     value.streamCaptureStatus.IncrementEventsRouted();
-        //     value.streamCaptureStatus.IncrementFinishedCount();
-        //     return null;
-        // }
+       
 
         HandlePossibleKillEvent(value, portraitText);
 
@@ -105,16 +95,21 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
         return null;
     }
 
+    /// <summary>
+    /// Handles a possible kill event by extracting relevant information from the provided parameters and dispatching a frame event.
+    /// </summary>
+    /// <param name="value">A tuple containing the stream definition, text, portrait text, dominant colors, frame number, second, frames per second, and stream capture status.</param>
+    /// <param name="portraitText">The portrait text to be analyzed.</param>
     private static void HandlePossibleKillEvent(
         (StreamDefinition streamDefinition, string? text, string? portraitText, ColorReport[] dominantColor, int frameNumber, int second, int fps, StreamCaptureStatus streamCaptureStatus)
             value,
         string portraitText)
     {
         var killType = "Kill";
-        var killMatch = _isKill.Match(portraitText);
+        var killMatch = IsKill.Match(portraitText);
         if (!killMatch.Success)
         {
-            killMatch = _isAssist.Match(portraitText);
+            killMatch = IsAssist.Match(portraitText);
             if (killMatch.Success)
             {
                 killType = "Assist";
@@ -123,16 +118,13 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
 
         if (!killMatch.Success)
         {
-            if (portraitText.Trim().Length > 0)
-            {
-                // Console.WriteLine(portraitText.Trim());
-            }
+        
 
             return;
         }
 
 
-        var target = cleanText.Replace(killMatch.Groups[1].Value, "");
+        var target = CleanText.Replace(killMatch.Groups[1].Value, "");
         var leftColor = value.dominantColor[0];
         var rightColor = value.dominantColor[1];
         var trimTarget = target.Trim();
@@ -145,29 +137,8 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
         var frameEvent = new FrameEvent(killType, value.frameNumber, value.second, value.fps, trimTarget);
         Console.WriteLine($"Dispatching Event: {frameEvent}");
         FrameEventHandler.AddEvent(frameEvent);
-        // else
-        // {
-        //     if (portraitText.Trim().Length > 0)
-        //     {
-        //         Console.WriteLine(portraitText.Trim());
-        //     }
-        // }
+   
     }
 }
 
-public static class TwitchHelper
-{
-    private static object GetTwitchApi(string streamer)
-    {
-        return null;
-    }
-
-    public static object CreateClip(string streamer)
-    {
-        return null;
-    }
-}
-
-public class ClipRecord
-{
-}
+ 

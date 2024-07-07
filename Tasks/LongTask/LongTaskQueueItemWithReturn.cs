@@ -1,4 +1,4 @@
-﻿namespace ClipHunta2;
+﻿namespace ClipHunta2.Tasks.LongTask;
 
 public class LongTaskQueueItemWithReturn<T, TR> : LongTaskQueueItem<T>
 {

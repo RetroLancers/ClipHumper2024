@@ -1,9 +1,9 @@
-﻿namespace ClipHunta2;
+﻿namespace ClipHunta2.Tasks.LongTask;
 
 public abstract class LongTask
 {
     private readonly CancellationTokenSource _cts;
-    private readonly AutoResetEvent _are = new AutoResetEvent(false);
+    private readonly AutoResetEvent _are = new(false);
 
     protected static readonly TimeSpan DefaultSleep = TimeSpan.FromMilliseconds(250);
     private Task? _task;

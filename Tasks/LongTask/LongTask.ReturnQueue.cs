@@ -1,12 +1,10 @@
-﻿using OpenCvSharp;
-
-namespace ClipHunta2;
+﻿namespace ClipHunta2.Tasks.LongTask;
 
 public partial class LongTaskWithReturn<T, TR>
 {
     public class ReturnQueue
     {
-        private CancellationTokenSource _source = new CancellationTokenSource();
+        private readonly CancellationTokenSource _source = new();
         private TR? _value;
 
         public void SetValue(TR? value)

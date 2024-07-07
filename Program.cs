@@ -1,4 +1,6 @@
 ﻿using ClipHunta2;
+using ClipHunta2.TaskManagers;
+using ClipHunta2.Tasks;
 using FFMpegCore;
 using OpenCvSharp;
 using Serilog;
@@ -14,26 +16,32 @@ Log.Logger = new LoggerConfiguration()
 //for ffmpeg
 GlobalFFOptions.Configure(new FFOptions { BinaryFolder = "C:\\ProgramData\\chocolatey\\lib\\ffmpeg\\tools\\ffmpeg\\bin", TemporaryFilesFolder = "c:\\tmp" });
 
-#if TrainingData
-TrainingDataTaskManager.GetInstance().AddLongTasker();
-#endif
+
 ImageScannerTaskManager.GetInstance().AddLongTasker();
-// ImageScannerTaskManager.GetInstance().AddLongTasker();
-// ImageScannerTaskManager.GetInstance().AddLongTasker();
-// ImageScannerTaskManager.GetInstance().AddLongTasker();
 EventRouterTaskManager.GetInstance().AddLongTasker();
 TesseractLongTaskManager.GetInstance().AddLongTasker();
 TesseractLongTaskManager.GetInstance().AddLongTasker();
 ImagePrepperTaskManager.GetInstance().AddLongTasker();
 ImagePrepperTaskManager.GetInstance().AddLongTasker();
 ClipTaskManager.GetInstance().AddLongTasker();
-FrameEventHandler.StartHandler();
-Console.WriteLine("Hello, World!");
+FrameEventHandler.StartHandler(); 
 var now = DateTime.Now;
 var cancellationTokenSource = new CancellationTokenSource();
-StreamCaptureTaskStarterTask streamCaptureTaskStarterTask =
-    new StreamCaptureTaskStarterTask(cancellationTokenSource, "GodOfBronze5", StreamCaptureType.Clip);
-var streamStatus = streamCaptureTaskStarterTask.Start(@"c:\twitchvods\stream_2024_6_29.mkv", cancellationTokenSource);
+var streamCaptureTaskStarterTask =
+    new StreamCaptureTaskStarterTask(cancellationTokenSource, "", StreamCaptureType.Clip);
+if (args.Length < 1)
+{
+    Console.WriteLine("Usage: ClipHunta2.exe filename");
+    return;
+}
+
+var filename = args[0];
+if (!File.Exists(filename))
+{
+    Console.WriteLine("No such file");
+    return;
+}
+var streamStatus = streamCaptureTaskStarterTask.Start(filename, cancellationTokenSource);
 
 
 while (streamStatus.FinishedCount != streamStatus.FinalFrameCount)
@@ -47,10 +55,11 @@ while (streamStatus.FinishedCount != streamStatus.FinalFrameCount)
         Console.WriteLine("Application was stopped");
         break;
     }
+
     Console.WriteLine("Image Scanner " + ImageScannerTaskManager.GetInstance());
     Console.WriteLine("Image Prepped" + ImagePrepperTaskManager.GetInstance());
     Console.WriteLine("Tesseract    " + TesseractLongTaskManager.GetInstance());
-    Console.WriteLine("Events    " + EventRouterTaskManager.GetInstance()); 
+    Console.WriteLine("Events    " + EventRouterTaskManager.GetInstance());
     Console.WriteLine(streamStatus);
 }
 

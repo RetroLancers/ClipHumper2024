@@ -1,9 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using Serilog;
 
-namespace ClipHunta2;
+namespace ClipHunta2.Tasks.LongTask;
 
-public partial class LongTask<T> : LongTask
+public class LongTask<T> : LongTask
 {
     public LongTask(CancellationTokenSource cts) : base(cts)
     {

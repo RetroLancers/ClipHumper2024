@@ -1,14 +1,10 @@
-﻿namespace ClipHunta2;
+﻿using Newtonsoft.Json;
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+namespace ClipHunta2.TwitchDl;
 
 public class TwitchDl
 {
-    public partial class ClipLookupResult
+    public class ClipLookupResult
     {
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
         public string Id { get; set; }
@@ -41,7 +37,7 @@ public class TwitchDl
         public Broadcaster Broadcaster { get; set; }
     }
 
-    public partial class Broadcaster
+    public class Broadcaster
     {
         [JsonProperty("displayName", NullValueHandling = NullValueHandling.Ignore)]
         public string DisplayName { get; set; }
@@ -50,7 +46,7 @@ public class TwitchDl
         public string Login { get; set; }
     }
 
-    public partial class Game
+    public class Game
     {
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
 
@@ -60,7 +56,7 @@ public class TwitchDl
         public string Name { get; set; }
     }
 
-    public partial class VideoQuality
+    public class VideoQuality
     {
         [JsonProperty("frameRate", NullValueHandling = NullValueHandling.Ignore)]
         public long? FrameRate { get; set; }

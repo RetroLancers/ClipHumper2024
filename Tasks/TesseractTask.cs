@@ -1,13 +1,15 @@
-﻿using Serilog;
+﻿using ClipHunta2.TaskManagers;
+using ClipHunta2.Tasks.LongTask;
+using Serilog;
 using Tesseract;
 
-namespace ClipHunta2;
+namespace ClipHunta2.Tasks;
 
 public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
 {
-    public TesseractTask(CancellationTokenSource _ctr, string tesseractDataPath = @"c:\tmp\tessdata_best-4.1.0",
+    public TesseractTask(CancellationTokenSource ctr, string tesseractDataPath = @"c:\tmp\tessdata_best-4.1.0",
         string tesseractLanguage = "eng",
-        EngineMode mode = EngineMode.Default) : base(_ctr)
+        EngineMode mode = EngineMode.Default) : base(ctr)
     {
         _engine = new TesseractEngine(tesseractDataPath, tesseractLanguage, mode);
         _engine.SetVariable("debug_file", "/dev/null");
@@ -31,7 +33,7 @@ public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
         return TesseractLongTaskManager.GetInstance().GetTopTasker();
     }
 
-    private TesseractEngine _engine;
+    private readonly TesseractEngine _engine;
     private readonly ThreadSafeInt _count;
 
 

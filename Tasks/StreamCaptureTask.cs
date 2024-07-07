@@ -1,16 +1,17 @@
 ﻿using System.ComponentModel;
+using ClipHunta2.TaskManagers;
+using ClipHunta2.Tasks.LongTask;
 using FFMpegCore;
 using OpenCvSharp;
 using Serilog;
-using Tesseract;
 
-namespace ClipHunta2;
+namespace ClipHunta2.Tasks;
 
 public class StreamCaptureTask
 {
     private readonly CancellationTokenSource _cts;
     private readonly StreamDefinition _stream;
-    private readonly Action<byte[]> _callback;
+   
 
     private readonly BackgroundWorker _backgroundWorker;
 
@@ -26,13 +27,13 @@ public class StreamCaptureTask
 
     private static string CreateClipPath(string filePath, int start, int end)
     {
-        string appendText = $" {start} - {end}";
+        var appendText = $" {start} - {end}";
 
-        string directoryName = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException("Could not get directory name");
-        string fileName = Path.GetFileNameWithoutExtension(filePath);
-        string extension = Path.GetExtension(filePath);
+        var directoryName = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException("Could not get directory name");
+        var fileName = Path.GetFileNameWithoutExtension(filePath);
+        var extension = Path.GetExtension(filePath);
 
-        string newFileName = $"{fileName}{appendText}{extension}";
+        var newFileName = $"{fileName}{appendText}{extension}";
         return Path.Combine(directoryName, newFileName);
     }
 
@@ -75,7 +76,7 @@ public class StreamCaptureTask
                     }
 
                     var clipPath = CreateClipPath(streamUrl, start, end);
-                    ClipTaskManager.GetInstance().GetLongTasker().Put(new LongTaskQueueItem<(string inFile, string outFile, int start, int end)>((streamUrl, clipPath, start, end)));
+                    _ = ClipTaskManager.GetInstance().GetLongTasker()!.Put(new LongTaskQueueItem<(string inFile, string outFile, int start, int end)>((streamUrl, clipPath, start, end)));
 
                     
                     break;
@@ -118,7 +119,7 @@ public class StreamCaptureTask
 
         try
         {
-            int sleep = 0;
+           
             while (!_cts.IsCancellationRequested)
             {
                 if (!videocapture.IsOpened())
@@ -133,8 +134,7 @@ public class StreamCaptureTask
 
                 if (frameNumber < 60 * 60 * 3)
                 {
-                    //        frameNumber++;
-                    //        continue;
+              
                 }
 
                 if (frameNumber % 30 == 0)
@@ -186,7 +186,7 @@ public class StreamCaptureTask
         });
     }
 
-    public void Start(string streamUrl, StreamCaptureType captureType, StreamCaptureStatus streamCaptureStatus)
+    public void Start(string? streamUrl, StreamCaptureType captureType, StreamCaptureStatus streamCaptureStatus)
     {
         if (_backgroundWorker.IsBusy)
         {

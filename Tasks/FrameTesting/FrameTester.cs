@@ -1,4 +1,4 @@
-﻿namespace ClipHunta2;
+﻿namespace ClipHunta2.Tasks.FrameTesting;
 
 public abstract class FrameTester
 {

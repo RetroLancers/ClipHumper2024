@@ -1,8 +1,8 @@
-﻿namespace ClipHunta2;
+﻿namespace ClipHunta2.Tasks.FrameTesting;
 
 public abstract class TextFrameTester : FrameTester
 {
-    protected readonly string _eventName;
+    protected readonly string EventName;
     protected abstract string[] Lookups();
     protected virtual string[] AvoidWords()
     {
@@ -30,6 +30,6 @@ public abstract class TextFrameTester : FrameTester
 
     public TextFrameTester(string eventName) : base(eventName)
     {
-        _eventName = eventName;
+        EventName = eventName;
     }
 }

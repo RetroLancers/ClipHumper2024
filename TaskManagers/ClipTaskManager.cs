@@ -1,4 +1,7 @@
-﻿namespace ClipHunta2;
+﻿using ClipHunta2.TaskManagers.LongTask;
+using ClipHunta2.Tasks;
+
+namespace ClipHunta2.TaskManagers;
 
 public sealed class ClipTaskManager : LongTaskManger<ClipTask>
 {
@@ -6,12 +9,12 @@ public sealed class ClipTaskManager : LongTaskManger<ClipTask>
 
     public ClipTaskManager()
     {
-        _longTasks = [];
+        LongTasks = [];
     }
 
-    public override ClipTask createOne()
+    protected override ClipTask createOne()
     {
-        return new ClipTask(_cancellationToken);
+        return new ClipTask(CancellationToken);
     }
 
     public static ClipTaskManager GetInstance()
@@ -19,7 +22,7 @@ public sealed class ClipTaskManager : LongTaskManger<ClipTask>
         if (_instance == null)
         {
             _instance = new ClipTaskManager();
-            _cancellationToken = new CancellationTokenSource();
+            CancellationToken = new CancellationTokenSource();
         }
 
         return _instance;

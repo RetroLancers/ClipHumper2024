@@ -31,7 +31,7 @@ public sealed class OwElimFrameTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }
 
@@ -69,7 +69,7 @@ public sealed class OwDeathFrameTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }
 
@@ -100,7 +100,7 @@ public sealed class OwAssistTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }
 public sealed class OwOrbHarmonyTester : TextFrameTester
@@ -130,7 +130,7 @@ public sealed class OwOrbHarmonyTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }
 
@@ -161,7 +161,7 @@ public sealed class OwHealingTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }
 
@@ -193,7 +193,7 @@ public sealed class OwBlockingTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }
 
@@ -227,6 +227,6 @@ public sealed class OwHeroSelectTester : TextFrameTester
 
     public override string GetName()
     {
-        return _eventName;
+        return EventName;
     }
 }

@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
-using ClipHunta2.StreamLink;
-using Serilog;
 
-namespace ClipHunta2;
+
+namespace ClipHunta2.Tasks;
 
 public enum StreamCaptureType
 {
@@ -82,12 +81,12 @@ public class StreamCaptureStatus
         _cts = cts;
     }
 
-    private ThreadSafeInt _finished = 0;
-    private ThreadSafeInt _framesCount = 0;
-    private ThreadSafeInt _imagesPrepped = 0;
-    private ThreadSafeInt _imagesScanned = 0;
-    private ThreadSafeInt _eventsRouted = 0;
-    private ThreadSafeInt _skipped = 0;
+    private readonly ThreadSafeInt _finished = 0;
+    private readonly ThreadSafeInt _framesCount = 0;
+    private readonly ThreadSafeInt _imagesPrepped = 0;
+    private readonly ThreadSafeInt _imagesScanned = 0;
+    private readonly ThreadSafeInt _eventsRouted = 0;
+    private readonly ThreadSafeInt _skipped = 0;
     private int _finalFrameCount = -1;
     private readonly CancellationTokenSource _cts;
 
@@ -173,39 +172,11 @@ public class StreamCaptureTaskStarterTask
 
     private void _watch(object? sender, DoWorkEventArgs e)
     {
-        StreamCaptureTask captureTask = new StreamCaptureTask(_cts, new StreamDefinition(_stream, _captureType));
+        var captureTask = new StreamCaptureTask(_cts, new StreamDefinition(_stream, _captureType));
 
-        var (clipId, status) = (ValueTuple<string, StreamCaptureStatus>)e.Argument!;
-        string streamUrl = null;
-        if (_captureType != StreamCaptureType.Clip)
-        {
-            var streams = StreamLinkRunner.LookUpStream("https://twitch.tv/" + _stream);
-            if (streams is { Streams: not null })
-            {
-                var streamDict = streams.Streams;
-                if (streamDict.TryGetValue("720p60", out var item))
-                {
-                    streamUrl = item.Url.ToString();
-                }
-                else if (streamDict.TryGetValue("1080p60", out var item1080))
-                {
-                    streamUrl = item1080.Url.ToString();
-                }
-                else Log.Logger.Debug("Failed to find watchable stream for {Streamer} ", _stream);
-            }
-            else
-            {
-                status.SetCanceled();
-
-                Log.Logger.Debug("Failed to get the stream url {Streamer} ", _stream);
-            }
-        }
-        else
-        {
-            streamUrl = clipId;
-        }
-
-        if (streamUrl != null) captureTask.Start(streamUrl, _captureType, status);
+        var (clipId, status) = ((string?, StreamCaptureStatus))e.Argument!;
+    
+        if (!string.IsNullOrEmpty(clipId)) captureTask.Start(clipId, _captureType, status);
     }
 
     public StreamCaptureStatus Start(string? clipId, CancellationTokenSource cts)

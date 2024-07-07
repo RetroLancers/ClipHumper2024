@@ -1,17 +1,20 @@
-﻿namespace ClipHunta2;
+﻿using ClipHunta2.TaskManagers.LongTask;
+using ClipHunta2.Tasks;
+
+namespace ClipHunta2.TaskManagers;
 
 public sealed class ImagePrepperTaskManager : LongTaskManger<ImagePrepperTask>
 { 
     private static ImagePrepperTaskManager? _instance;
 
-    public override ImagePrepperTask createOne()
+    protected override ImagePrepperTask createOne()
     {
-        return new ImagePrepperTask(_cancellationToken);
+        return new ImagePrepperTask(CancellationToken);
     }
 
     public ImagePrepperTaskManager()
     {
-        _longTasks = [];
+        LongTasks = [];
     }
 
 
@@ -20,7 +23,7 @@ public sealed class ImagePrepperTaskManager : LongTaskManger<ImagePrepperTask>
         if (_instance == null)
         {
             _instance = new ImagePrepperTaskManager();
-            _cancellationToken = new CancellationTokenSource();
+            CancellationToken = new CancellationTokenSource();
         }
 
         return _instance;
