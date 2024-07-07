@@ -1,10 +1,10 @@
-﻿# Twitch VOD Cutter
+﻿# clipHunta
 
-Welcome to the Twitch VOD Cutter, a razor-sharp application crafted to slice your downloaded Twitch VOD files based on
+Welcome to the clipHunta, a razor-sharp application crafted to slice your downloaded Twitch VOD files based on
 where the real action begins!
 
 Channel your inner editor and cut through the unwanted segments, leaving only the best parts of your gaming highlights.
-No more sifting through hours of footage looking for die-hard headshots or epic boss battles with Twitch VOD Cutter!
+No more sifting through hours of footage looking for die-hard headshots or epic multikills!
 
 ## 📜 Table of Contents
 
