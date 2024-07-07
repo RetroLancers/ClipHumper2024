@@ -9,10 +9,7 @@ No more sifting through hours of footage looking for die-hard headshots or epic 
 ## 📜 Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Installation](#installation)
-3. [How To Use](#how-to-use)
-4. [License](#license)
-5. [Contributing](#contributing)
+2. [How To Use](#how-to-use)
 
 ## 🌐 Getting Started
 
