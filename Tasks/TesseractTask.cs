@@ -7,7 +7,7 @@ namespace ClipHunta2.Tasks;
 
 public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
 {
-    public TesseractTask(CancellationTokenSource ctr, string tesseractDataPath = @"c:\tmp\tessdata_best-4.1.0",
+    public TesseractTask(CancellationTokenSource ctr, string tesseractDataPath,
         string tesseractLanguage = "eng",
         EngineMode mode = EngineMode.Default) : base(ctr)
     {

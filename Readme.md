@@ -13,9 +13,16 @@ No more sifting through hours of footage looking for die-hard headshots or epic 
 
 ## 🌐 Getting Started
 
-Use Choco to install ffmpeg. If you did not do this, set the ENV variable `FFMPEG_PATH`.
 
-If you wish to use a different tmp folder for ffmpeg set `TMP_PATH` ENV Variable
+* Install Tesseract https://github.com/tesseract-ocr/tessdoc 
+
+* Download Tesseract Data https://github.com/tesseract-ocr/tessdata 
+
+* Set Env Varaiable `TESSERACT_DATA`
+
+* Use Choco to install ffmpeg. 
+  * If you did not do this, set the ENV variable `FFMPEG_PATH`.
+  * If you wish to use a different tmp folder for ffmpeg set `TMP_PATH` ENV Variable
 
 Make sure you have .net8 for windows installed. 
 

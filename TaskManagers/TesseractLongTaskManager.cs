@@ -14,7 +14,8 @@ public sealed class TesseractLongTaskManager : LongTaskManger<TesseractTask>
 
     protected override TesseractTask createOne()
     {
-        return new TesseractTask(CancellationToken);
+        var tessPath = System.Environment.GetEnvironmentVariable("TESSERACT_DATA") ??  @"c:\tmp\tessdata_best-4.1.0";
+        return new TesseractTask(CancellationToken,tessPath);
     }
 
  
