@@ -45,47 +45,47 @@ public class StreamCaptureTask
             (ValueTuple<string, StreamCaptureType, StreamCaptureStatus>)e.Argument;
 
         var mediaInfo = FFProbe.Analyse(streamUrl);
-        FrameEventHandler.OnMultiKill += args =>
-        {
-            var group = args.Group;
-            if (group.Processed) return;
-            group.Processed = true;
-
-            Console.WriteLine(group);
-            switch (captureType)
-            {
-                case StreamCaptureType.Clip:
-                    var start = group.Min(a => a.Second);
-                    if (start < 6)
-                    {
-                        start = 0;
-                    }
-                    else
-                    {
-                        start -= 6;
-                    }
-
-                    var end = group.Max(a => a.Second);
-                    if (mediaInfo.Duration.TotalSeconds < end + 6)
-                    {
-                        end = (int)mediaInfo.Duration.TotalSeconds;
-                    }
-                    else
-                    {
-                        end += 6;
-                    }
-
-                    var clipPath = CreateClipPath(streamUrl, start, end);
-                    _ = ClipTaskManager.GetInstance().GetLongTasker()!.Put(new LongTaskQueueItem<(string inFile, string outFile, int start, int end)>((streamUrl, clipPath, start, end)));
-
-                    
-                    break;
-                case StreamCaptureType.Stream:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        };
+        // FrameEventHandler.OnMultiKill += args =>
+        // {
+        //     var group = args.Group;
+        //     if (group.Processed) return;
+        //     group.Processed = true;
+        //
+        //     Console.WriteLine(group);
+        //     switch (captureType)
+        //     {
+        //         case StreamCaptureType.Clip:
+        //             var start = group.Min(a => a.Second);
+        //             if (start < 6)
+        //             {
+        //                 start = 0;
+        //             }
+        //             else
+        //             {
+        //                 start -= 6;
+        //             }
+        //
+        //             var end = group.Max(a => a.Second);
+        //             if (mediaInfo.Duration.TotalSeconds < end + 6)
+        //             {
+        //                 end = (int)mediaInfo.Duration.TotalSeconds;
+        //             }
+        //             else
+        //             {
+        //                 end += 6;
+        //             }
+        //
+        //             var clipPath = CreateClipPath(streamUrl, start, end);
+        //             _ = ClipTaskManager.GetInstance().GetLongTasker()!.Put(new LongTaskQueueItem<(string inFile, string outFile, int start, int end)>((streamUrl, clipPath, start, end)));
+        //
+        //             
+        //             break;
+        //         case StreamCaptureType.Stream:
+        //             break;
+        //         default:
+        //             throw new ArgumentOutOfRangeException();
+        //     }
+        // };
         using var videocapture = new VideoCapture();
         try
         {

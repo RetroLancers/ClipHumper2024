@@ -58,11 +58,11 @@ while (streamStatus.FinishedCount != streamStatus.FinalFrameCount)
         break;
     }
 
-    Console.WriteLine("Image Scanner " + ImageScannerTaskManager.GetInstance());
-    Console.WriteLine("Image Prepped" + ImagePrepperTaskManager.GetInstance());
-    Console.WriteLine("Tesseract    " + TesseractLongTaskManager.GetInstance());
-    Console.WriteLine("Events    " + EventRouterTaskManager.GetInstance());
-    Console.WriteLine(streamStatus);
+    // Console.WriteLine("Image Scanner " + ImageScannerTaskManager.GetInstance());
+    // Console.WriteLine("Image Prepped" + ImagePrepperTaskManager.GetInstance());
+    // Console.WriteLine("Tesseract    " + TesseractLongTaskManager.GetInstance());
+    // Console.WriteLine("Events    " + EventRouterTaskManager.GetInstance());
+    // Console.WriteLine(streamStatus);
 }
 
 foreach (var frameEventGroup in FrameEventHandler.GetFrameEventGroups())
