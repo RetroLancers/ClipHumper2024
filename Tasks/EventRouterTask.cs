@@ -28,9 +28,10 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
     public static Regex CurrentAccount = new(@"([A-Z0-9]{3,})\n", RegexOptions.Compiled);
     private static readonly Regex IsKill = new(@"^[3WMX]{0,2}\s?(\w{3,})\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex IsAssist = new(@"ASSIST\s+(\w{3,})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex IsHeal = new(@"HEALED\s+(\w{3,})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex IsSaved = new(@"SAVED\s+(\w{3,})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex IsDeath = new(@"LIMINATED", RegexOptions.Compiled);
     private static readonly Regex CleanText = new("[^A-Za-z0-9]", RegexOptions.Compiled);
-    
 
 
     private static readonly object DeathLock = new();
@@ -53,7 +54,6 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
         (StreamDefinition streamDefinition, string? text, string? portraitText, ColorReport[] dominantColor, int frameNumber, int second,
             int fps, StreamCaptureStatus streamCaptureStatus) value)
     {
-      
         var portraitText = value.portraitText;
 
         FrameEventHandler.SetLastFrameSeenByEventRouter(value.frameNumber);
@@ -77,15 +77,31 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
             }
 
             return null;
-        } 
-        
+        }
+
+        var isHealMatch = IsHeal.Match(portraitText);
+        if (isHealMatch.Success)
+        {
+            var frameEvent = new FrameEvent("HEAL", value.frameNumber, value.second, value.fps, "STREAMER");
+            Console.WriteLine($"Dispatching Event: {frameEvent}");
+            FrameEventHandler.AddEvent(frameEvent);
+        }
+
+        var isSavedMatch = IsHeal.Match(portraitText);
+        if (isSavedMatch.Success)
+        {
+            var frameEvent = new FrameEvent("SAVED", value.frameNumber, value.second, value.fps, "STREAMER");
+            Console.WriteLine($"Dispatching Event: {frameEvent}");
+            FrameEventHandler.AddEvent(frameEvent);
+        }
+
         if (value.dominantColor.Any(color => color.dominantPrimaryColor != "Red"))
         {
             value.streamCaptureStatus.IncrementEventsRouted();
             value.streamCaptureStatus.IncrementFinishedCount();
             return null;
         }
-       
+
 
         HandlePossibleKillEvent(value, portraitText);
 
@@ -110,17 +126,12 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
         if (!killMatch.Success)
         {
             killMatch = IsAssist.Match(portraitText);
-            if (killMatch.Success)
+            if (!killMatch.Success)
             {
-                killType = "Assist";
+                return;
             }
-        }
 
-        if (!killMatch.Success)
-        {
-        
-
-            return;
+            killType = "Assist";
         }
 
 
@@ -129,16 +140,13 @@ public class EventRouterTask : LongTask<(StreamDefinition streamDefinition, stri
         var rightColor = value.dominantColor[1];
         var trimTarget = target.Trim();
 
-        if (string.IsNullOrEmpty(trimTarget) || trimTarget.Length <= 2) 
+        if (string.IsNullOrEmpty(trimTarget) || trimTarget.Length <= 2)
             return;
-        if (char.IsDigit(trimTarget[0])) 
+        if (char.IsDigit(trimTarget[0]))
             return;
         Console.WriteLine($"{trimTarget} , {leftColor.dominantPrimaryColor}, {leftColor.averageColor}, {rightColor.dominantPrimaryColor}, {rightColor.averageColor}");
         var frameEvent = new FrameEvent(killType, value.frameNumber, value.second, value.fps, trimTarget);
         Console.WriteLine($"Dispatching Event: {frameEvent}");
         FrameEventHandler.AddEvent(frameEvent);
-   
     }
 }
-
- 
