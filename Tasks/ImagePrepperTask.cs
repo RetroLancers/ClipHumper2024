@@ -7,14 +7,19 @@ using SixLabors.ImageSharp.Processing;
 
 namespace ClipHunta2.Tasks;
 
-public class
-    ImagePrepperTask : LongTask<(StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType captureType,
-    StreamCaptureStatus streamCaptureStatus, int
-    frameNumber, int seconds, int fps
-    )>
+public record ImagePrepperPayload(
+    StreamDefinition StreamDefinition,
+    byte[] Bytes,
+    StreamCaptureType CaptureType,
+    StreamCaptureStatus StreamCaptureStatus,
+    int FrameNumber,
+    int Seconds,
+    int Fps
+);
+
+public class ImagePrepperTask : LongTask<ImagePrepperPayload>
 {
-    protected override LongTask<(StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType captureType,
-        StreamCaptureStatus streamCaptureStatus, int frameNumber, int seconds, int fps)>? GetTop()
+    protected override LongTask<ImagePrepperPayload>? GetTop()
     {
         return ImagePrepperTaskManager.GetInstance().GetTopTasker();
     }
@@ -22,20 +27,15 @@ public class
     /// <summary>
     /// Preps and cuts images
     /// </summary>
-    /// <param name="value">The tuple containing the stream definition, bytes, capture type, capture status, frame number, seconds, and fps.</param>
-    protected override async Task _action(
-        (StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType captureType, StreamCaptureStatus
-            streamCaptureStatus, int
-            frameNumber, int seconds,
-            int fps
-            ) value)
+    /// <param name="payload">The payload containing the stream definition, bytes, capture type, capture status, frame number, seconds, and fps.</param>
+    protected override async Task _action(ImagePrepperPayload payload)
     {
     
         using var mem2 = new MemoryStream();
         (Color averageColor, string dominantPrimaryColor) color2;
         (Color averageColor, string dominantPrimaryColor) color;
         (Color averageColor, string dominantPrimaryColor) color3;
-        using (var image = Image.Load(new DecoderOptions(), value.bytes))
+        using (var image = Image.Load(new DecoderOptions(), payload.Bytes))
         {
             var cropWidth = image.Width / 8;
             var cropHeight = (image.Height / 16) + 15;
@@ -49,33 +49,25 @@ public class
             color = ImageColorAnalyzer.AnalyzeImageCenter(imageBuffer);
             color2 = ImageColorAnalyzer.AnalyzeImageCenter2(imageBuffer);
             color3 = ImageColorAnalyzer.AnalyzeImageCenter3(imageBuffer);
-    
-            mem2.Seek(0, SeekOrigin.Begin);
-            await image.SaveAsPngAsync(mem2);
         }
-
  
-        mem2.Seek(0, SeekOrigin.Begin);
-        using var bottomLeft = Mat.FromImageData(mem2.ToArray(), ImreadModes.Unchanged);
+        // mem2 contains the image data from the last SaveAsPngAsync
+        // No need to save again, use imageBuffer directly for Mat
+        using var ocrInputMat = Mat.FromImageData(imageBuffer, ImreadModes.Unchanged);
  
 
         ImageScannerTaskManager.GetInstance().GetLongTasker()?
-            .PutInQueue((value.streamDefinition, [color, color2, color3], bottomLeft.ToBytes(), value.captureType, value.streamCaptureStatus,
-                value.frameNumber, value.seconds, value.fps));
+            .PutInQueue((payload.StreamDefinition, [color, color2, color3], ocrInputMat.ToBytes(), payload.CaptureType, payload.StreamCaptureStatus,
+                payload.FrameNumber, payload.Seconds, payload.Fps));
 
 
-        value.streamCaptureStatus.IncrementImagesPrepped();
+        payload.StreamCaptureStatus.IncrementImagesPrepped();
     }
 
-    public void PutInQueue(
-        (StreamDefinition streamDefinition, byte[] bytes, StreamCaptureType captureType, StreamCaptureStatus
-            streamCaptureStatus, int
-            frameNumber, int seconds, int fps) value)
+    public void PutInQueue(ImagePrepperPayload payload)
     {
-        Put(new LongTaskQueueItem<(StreamDefinition, byte[], StreamCaptureType, StreamCaptureStatus, int, int, int)>(
-            value)).Wait();
+        Put(new LongTaskQueueItem<ImagePrepperPayload>(payload)).Wait();
     }
-
 
     public ImagePrepperTask(CancellationTokenSource cts) : base(cts)
     {

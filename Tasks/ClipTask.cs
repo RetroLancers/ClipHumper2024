@@ -30,10 +30,8 @@ public class ClipTask : LongTask<(string inFile,string outFile,int start, int en
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            
+            Serilog.Log.Error(e, "Error during clipping operation for file {InFile}", value.inFile);
         }
-      
         
     }
 }

@@ -56,7 +56,6 @@ public class TesseractTask : LongTaskWithReturn<Pix, string>, IDisposable
         catch (Exception ex)
         {
             Log.Logger.Error(ex, "Error in Get Text");
-            Console.WriteLine(ex);
         }
         finally
         {

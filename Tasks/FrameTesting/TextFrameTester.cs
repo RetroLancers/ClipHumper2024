@@ -12,16 +12,22 @@ public abstract class TextFrameTester : FrameTester
     {
         foreach (var lookup in Lookups())
         {
-            if (text.IndexOf(lookup, StringComparison.Ordinal) >= 0)
+            if (text.IndexOf(lookup, StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                foreach(var avoidword in AvoidWords())
+                bool avoidWordFound = false;
+                foreach (var avoidword in AvoidWords())
                 {
-                    if(text.IndexOf(avoidword,StringComparison.Ordinal) >= 0)
+                    if (text.IndexOf(avoidword, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        continue;
+                        avoidWordFound = true;
+                        break;
                     }
                 }
-                return true;
+
+                if (!avoidWordFound)
+                {
+                    return true;
+                }
             }
         }
 

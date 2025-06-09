@@ -6,13 +6,31 @@ namespace ClipHunta2.Tasks;
 
 using ColorReport = (SixLabors.ImageSharp.Color averageColor, string dominantPrimaryColor);
 
-public class ImageScannerTask(CancellationTokenSource cts) : LongTask<(StreamDefinition streamDefinition,
-    ColorReport[] dominantColor, byte[] portraitbytes, StreamCaptureType captureType
-    , StreamCaptureStatus streamCaptureStatus, int frameNumber, int second,
-    int fps)>(cts)
+public record ImageScannerPayload(
+    StreamDefinition StreamDefinition,
+    ColorReport[] DominantColors,
+    byte[] PortraitBytes,
+    StreamCaptureType CaptureType,
+    StreamCaptureStatus StreamCaptureStatus,
+    int FrameNumber,
+    int Second,
+    int Fps
+);
+
+public record EventRouterPayload(
+    StreamDefinition StreamDefinition,
+    string? Text,
+    string? PortraitText,
+    ColorReport[] DominantColors,
+    int FrameNumber,
+    int Second,
+    int Fps,
+    StreamCaptureStatus StreamCaptureStatus
+);
+
+public class ImageScannerTask(CancellationTokenSource cts) : LongTask<ImageScannerPayload>(cts)
 {
-    protected override LongTask<(StreamDefinition streamDefinition, ColorReport[] dominantColor, byte[] portraitbytes, StreamCaptureType captureType,
-        StreamCaptureStatus streamCaptureStatus, int frameNumber, int second, int fps)>? GetTop()
+    protected override LongTask<ImageScannerPayload>? GetTop()
     {
         return ImageScannerTaskManager.GetInstance().GetTopTasker();
     }
@@ -21,38 +39,38 @@ public class ImageScannerTask(CancellationTokenSource cts) : LongTask<(StreamDef
     /// <summary>
     /// Scans the prepped images for text
     /// </summary>
-    /// <param name="value">The tuple containing the stream definition, dominant colors, portrait bytes,
+    /// <param name="payload">The payload containing the stream definition, dominant colors, portrait bytes,
     /// capture type, stream capture status, frame number, second, and FPS.</param>
-    protected override async Task _action(
-        (StreamDefinition streamDefinition, ColorReport[] dominantColor, byte[] portraitbytes, StreamCaptureType
-            captureType, StreamCaptureStatus streamCaptureStatus, int frameNumber, int second,
-            int fps) value)
+    protected override async Task _action(ImageScannerPayload payload)
     {
         
 
 
-        using var pixPortrait = Pix.LoadFromMemory(value.portraitbytes);
+        using var pixPortrait = Pix.LoadFromMemory(payload.PortraitBytes);
 
         var tesseractTask = TesseractLongTaskManager.GetInstance().GetLongTasker();
 
         var portraitText = await tesseractTask!.GetText(pixPortrait);
 
+        var eventRouterPayload = new EventRouterPayload(
+            payload.StreamDefinition,
+            "", // Assuming Text is intentionally empty here
+            portraitText,
+            payload.DominantColors,
+            payload.FrameNumber,
+            payload.Second,
+            payload.Fps,
+            payload.StreamCaptureStatus
+        );
 
         EventRouterTaskManager.GetInstance().GetLongTasker()?.Put(
-            new LongTaskQueueItem<(StreamDefinition, string? text, string? portraitText, ColorReport[] dominantColor, int frameNumber, int second,
-                int fps, StreamCaptureStatus)>
-            ((value.streamDefinition, "", portraitText, value.dominantColor, value.frameNumber, value.second,
-                value.fps, value.streamCaptureStatus)));
+            new LongTaskQueueItem<EventRouterPayload>(eventRouterPayload));
 
-        value.streamCaptureStatus.IncrementImagesScanned();
+        payload.StreamCaptureStatus.IncrementImagesScanned();
     }
 
-    public void PutInQueue(
-        (StreamDefinition streamDefinition, ColorReport[] dominantColor, byte[] portraitbytes, StreamCaptureType captureType, StreamCaptureStatus
-            streamCaptureStatus, int frameNumber, int second,
-            int fps) value)
+    public void PutInQueue(ImageScannerPayload payload)
     {
-        Put(new LongTaskQueueItem<(StreamDefinition, ColorReport[], byte[], StreamCaptureType, StreamCaptureStatus, int, int, int)>(
-            value)).Wait();
+        Put(new LongTaskQueueItem<ImageScannerPayload>(payload)).Wait();
     }
 }
